@@ -1,0 +1,10 @@
+curl -fsSL https://ollama.com/install.sh | sh
+
+start ollama
+ollama serve
+
+download model
+ollama pull phi3
+
+run script
+python3 ollama_test.py
