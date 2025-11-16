@@ -8,16 +8,10 @@ import os
 HF_TOKEN=os.getenv("HF_TOKEN")
  
  
-# ---------------------------
-# 1. Wrap text to fixed width
-# ---------------------------
 def wrap(text, width=50):
     return textwrap.fill(text, width=width).split("\n")
 
-
-# ---------------------------
-# 2. OLLAMA reply
-# ---------------------------
+ 
 def get_ollama_reply():
     url = "http://localhost:11434/api/chat"
     data = {
@@ -36,9 +30,7 @@ def get_ollama_reply():
     return full_reply.strip()
 
 
-# ---------------------------
-# 3. HuggingFace reply
-# ---------------------------
+ 
 def get_hf_reply():
     HF_TOKEN = os.getenv("HF_TOKEN")
     url = "https://router.huggingface.co/v1/chat/completions"
@@ -57,10 +49,10 @@ def get_hf_reply():
     data = response.json()
 
     print("\n=== HF RAW RESPONSE ===")
-    print(data)          # DEBUG THIS
+    print(data)           
     print("======================\n")
 
-    # Safely handle errors
+  
     if "choices" not in data:
         raise Exception(f"HuggingFace error: {data}")
 
@@ -84,19 +76,15 @@ def get_hf_reply():
     return data["choices"][0]["message"]["content"].strip()
 
 
-# ---------------------------
-# 4. Get responses
-# ---------------------------
+ 
 ollama_text = get_ollama_reply()
 hf_text = get_hf_reply()
 
-# Wrap at 50 chars per column
+ 
 ollama_lines = wrap(ollama_text, 55)
 hf_lines = wrap(hf_text, 55)
 
-# ---------------------------
-# 5. Print clean table
-# ---------------------------
+ 
 print("\n" + "=" * 130)
 print("🟦 OLLAMA (phi3)".ljust(60) + " | " + "🟨 HUGGINGFACE (DeepSeek-V3)")
 print("=" * 130)
