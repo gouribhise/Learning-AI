@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -34,16 +33,27 @@ class QuoteGenerator extends StatefulWidget {
 
 class _QuoteGeneratorState extends State<QuoteGenerator> {
   final TextEditingController controller = TextEditingController();
-  String result = "";
   bool loading = false;
 
   late final String apiKey;
-  int selectedCount = 3; // default quotes count
+  int selectedCount = 3;
+
+  // New: store quotes in a list
+  List<String> quotes = [];
 
   @override
   void initState() {
     super.initState();
     apiKey = dotenv.env['HF_TOKEN'] ?? "";
+  }
+
+  // New: Clean and split output safely
+  List<String> cleanQuotes(String raw) {
+    return raw
+        .split('\n')
+        .map((q) => q.trim())
+        .where((q) => q.isNotEmpty)
+        .toList();
   }
 
   Future<void> generateQuote(String topic) async {
@@ -62,7 +72,8 @@ class _QuoteGeneratorState extends State<QuoteGenerator> {
         {
           "role": "user",
           "content":
-              "Create $selectedCount meaningful quotes on the topic: $topic",
+              "Create $selectedCount short meaningful quotes on the topic: $topic. "
+              "Return ONLY clean plain text quotes, each on a new line, without numbers, bullets, asterisks, emojis, or decorative symbols.",
         },
       ],
       "max_tokens": 150,
@@ -76,13 +87,14 @@ class _QuoteGeneratorState extends State<QuoteGenerator> {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+      final raw = data["choices"][0]["message"]["content"] ?? "";
 
       setState(() {
-        result = data["choices"][0]["message"]["content"] ?? "No output";
+        quotes = cleanQuotes(raw);
       });
     } else {
       setState(() {
-        result = "Error: ${response.body}";
+        quotes = ["Error: ${response.body}"];
       });
     }
 
@@ -104,6 +116,7 @@ class _QuoteGeneratorState extends State<QuoteGenerator> {
                 labelText: "Enter Topic",
               ),
             ),
+
             const SizedBox(height: 20),
 
             DropdownButton(
@@ -116,11 +129,10 @@ class _QuoteGeneratorState extends State<QuoteGenerator> {
                     );
                   }).toList(),
               onChanged: (value) {
-                setState(() {
-                  selectedCount = value as int;
-                });
+                setState(() => selectedCount = value as int);
               },
             ),
+
             const SizedBox(height: 20),
 
             ElevatedButton(
@@ -130,13 +142,29 @@ class _QuoteGeneratorState extends State<QuoteGenerator> {
                 if (topic.isNotEmpty) generateQuote(topic);
               },
             ),
+
             const SizedBox(height: 20),
+
             if (loading) const CircularProgressIndicator(),
-            if (!loading && result.isNotEmpty)
-              Text(
-                result,
-                style: const TextStyle(fontSize: 18),
-                textAlign: TextAlign.center,
+
+            if (!loading && quotes.isNotEmpty)
+              Expanded(
+                child: ListView.builder(
+                  itemCount: quotes.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      elevation: 3,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          quotes[index],
+                          style: const TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
           ],
         ),
