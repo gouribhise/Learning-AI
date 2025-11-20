@@ -38,7 +38,6 @@ class _QuoteGeneratorState extends State<QuoteGenerator> {
   late final String apiKey;
   int selectedCount = 3;
 
-  // New: store quotes in a list
   List<String> quotes = [];
 
   @override
@@ -47,7 +46,6 @@ class _QuoteGeneratorState extends State<QuoteGenerator> {
     apiKey = dotenv.env['HF_TOKEN'] ?? "";
   }
 
-  // New: Clean and split output safely
   List<String> cleanQuotes(String raw) {
     return raw
         .split('\n')
@@ -57,7 +55,10 @@ class _QuoteGeneratorState extends State<QuoteGenerator> {
   }
 
   Future<void> generateQuote(String topic) async {
-    setState(() => loading = true);
+    setState(() {
+      loading = true;
+      quotes = []; // Clear before new animation
+    });
 
     const url = "https://router.huggingface.co/v1/chat/completions";
 
@@ -152,14 +153,30 @@ class _QuoteGeneratorState extends State<QuoteGenerator> {
                 child: ListView.builder(
                   itemCount: quotes.length,
                   itemBuilder: (context, index) {
-                    return Card(
-                      elevation: 3,
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          quotes[index],
-                          style: const TextStyle(fontSize: 18),
+                    return TweenAnimationBuilder(
+                      duration: Duration(
+                        milliseconds: 500 + (index * 120),
+                      ), // stagger
+                      tween: Tween<Offset>(
+                        begin: const Offset(0, 0.3),
+                        end: Offset.zero,
+                      ),
+                      curve: Curves.easeOut,
+                      builder: (context, offset, child) {
+                        return Transform.translate(
+                          offset: Offset(0, offset.dy * 40),
+                          child: child,
+                        );
+                      },
+                      child: Card(
+                        elevation: 3,
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            quotes[index],
+                            style: const TextStyle(fontSize: 18),
+                          ),
                         ),
                       ),
                     );
