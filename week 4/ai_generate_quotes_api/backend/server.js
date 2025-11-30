@@ -10,7 +10,7 @@ app.use(express.json());
 const API_URL = "https://router.huggingface.co/v1/chat/completions";
 const API_KEY = process.env.HF_TOKEN;
 
-// Clean quotes like your Flutter code
+ 
 function cleanQuotes(raw, topic, expectedCount) {
   const lines = raw
     .split("\n")
@@ -39,7 +39,7 @@ function cleanQuotes(raw, topic, expectedCount) {
   return matchesTopic;
 }
 
-// POST API: /generate
+ 
 app.post("/generate", async (req, res) => {
   const { topic, count } = req.body;
 
