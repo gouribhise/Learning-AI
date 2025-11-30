@@ -10,7 +10,7 @@ app.use(express.json());
 const API_URL = "https://router.huggingface.co/v1/chat/completions";
 const API_KEY = process.env.HF_TOKEN;
 
- 
+const PORT = process.env.PORT || 3000; 
 function cleanQuotes(raw, topic, expectedCount) {
   const lines = raw
     .split("\n")
@@ -103,4 +103,4 @@ app.post("/generate", async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+app.listen(PORT, () => console.log("Server running on port 3000"));
